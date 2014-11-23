@@ -25,20 +25,21 @@ public class MyTileProvider implements TileProvider, Closeable {
 	private Context mContext;
 	private DatabaseHelper dbHelper;
 	
-	public MyTileProvider(Context context) {
+	public MyTileProvider(Context context, String name) {
 		super();
 		mContext = context;
 		// load bd
-		openTiles();
+		openTiles(name);
 	}
 	
 	/**
 	 * Load Db
+	 * @param name
 	 */
-	private void openTiles() {
+	private void openTiles(String name) {
 		dbHelper = new DatabaseHelper(mContext);
 	    try {
-			dbHelper.createDatabase();
+			dbHelper.createDatabase(name);
 		
 		    dbHelper.openDataBase();
 		    

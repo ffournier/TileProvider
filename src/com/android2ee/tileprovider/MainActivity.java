@@ -51,7 +51,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 			// set the type to TYPE_NONE
 	    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
 	    	// create the tileProvider
-	    	tileProvider = new MyTileProvider(this);
+	    	tileProvider = new MyTileProvider(this, "tiles-ign.mbtiles");
 	    	// Add the Provider in Map
 	    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
 	    	// center Map

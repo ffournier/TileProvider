@@ -1,5 +1,6 @@
 package com.android2ee.tileprovider;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,9 +9,11 @@ import java.io.OutputStream;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * The DataBase Helper 
@@ -20,14 +23,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	// TODO change it
-    private static String DB_PATH = "/data/data/com.android2ee.tileprovider/databases/";
-    private static String DB_NAME = "tiles-ign.mbtiles";
+    private static String DB_SUBPATH = "/databases/";
+    private static String DB_PATH;
+    private static String DB_NAME = "mydatabase.mbtiles";
     private SQLiteDatabase myDataBase;
     private final Context myContext;
 
     public DatabaseHelper (Context context) {
         super(context, DB_NAME, null, 1);
         this.myContext = context;
+        DB_PATH = context.getFilesDir().getAbsolutePath() + DB_SUBPATH;
+        File file = new File(DB_PATH);
+        if (!file.exists()) {
+        	file.mkdirs();
+        }
     }
 
     /**
@@ -35,16 +44,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param name
      * @throws IOException
      */
-    public void createDatabase() throws IOException {
+    public void createDatabase(String name) throws IOException {
         boolean isExist = isDatabaseExist();
 
         if (!isExist) {
             this.getReadableDatabase();
 
             try {
-                copyDataBase();
+                copyDataBase(name);
             } catch (IOException e) {
-                throw new Error("Error copying database");
+            	throw new Error("Error copying database");
             }
         }
     }
@@ -54,13 +63,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param name
      * @throws IOException
      */
-    private void copyDataBase() throws IOException {
+    private void copyDataBase(String name) throws IOException {
 
         // Open your local db as the input stream
-        InputStream myInput = myContext.getAssets().open(DB_NAME);
-
+        InputStream myInput = myContext.getAssets().open(name);
+        
         // Path to the just created empty db
-        String outFileName = myContext.getFilesDir() + DB_PATH + DB_NAME;
+        String outFileName = DB_PATH + DB_NAME;
 
         // Open the empty db as the output stream
         OutputStream myOutput = new FileOutputStream(outFileName);
@@ -114,7 +123,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Get Tile in Database
      * @param row : the row 
-     * @param column : the colum,
+     * @param column : the column,
      * @param zoom : the zoom
      * @return the byte[]
      */
