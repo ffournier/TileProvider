@@ -5,7 +5,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -20,8 +19,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 
+/**
+ * Main Activity
+ * @author florian
+ *
+ */
 public class MainActivity extends ActionBarActivity implements LocationListener {
 
+	// Declaration
 	GoogleMap map;
 	MyTileProvider tileProvider;
 	LocationManager locationManager;
@@ -35,15 +40,17 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 		map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
 		        .getMap();
 		   
-		// To test
-		tileProvider = new MyTileProvider(this);
-		
-	    if (map != null){
+		// Init Map
+		if (map != null){
+			// set the type to TYPE_NONE
 	    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
+	    	// create the tileProvider
+	    	tileProvider = new MyTileProvider(this);
+	    	// Add the Provider in Map
 	    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+	    	// center Map
 	    	LatLngBounds bounds = tileProvider.getBounds();
 	    	//double zoom = tileProvider.getMinZoom();
-	    	Log.w("Tag", "bounds " + bounds.toString());
 	    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
 	    	map.moveCamera(upd);
 	    	// TODO can display location like this
@@ -100,10 +107,13 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 		}
 	}
 	
+	/**
+	 * Display the current Location on map
+	 * @param location
+	 */
 	private void updateMarker(Location location) {
 		if (map != null) {
 			LatLng latlng = new LatLng(location.getLatitude(), location.getLongitude());
-			Log.w("Tag", "position " + latlng.toString());
 			if (myPositionMarker == null) {
 				
 				myPositionMarker = map.addMarker(new MarkerOptions()

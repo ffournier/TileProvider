@@ -5,15 +5,20 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileProvider;
 
+/**
+ * Tile Provider
+ * @author florian
+ *
+ */
 public class MyTileProvider implements TileProvider, Closeable {
 	
+	// declaration
 	public static final int TILE_WIDTH = 256;
     public static final int TILE_HEIGHT = 256;
 
@@ -22,12 +27,14 @@ public class MyTileProvider implements TileProvider, Closeable {
 	
 	public MyTileProvider(Context context) {
 		super();
-		// TODO Auto-generated constructor stub
 		mContext = context;
 		// load bd
 		openTiles();
 	}
 	
+	/**
+	 * Load Db
+	 */
 	private void openTiles() {
 		dbHelper = new DatabaseHelper(mContext);
 	    try {
@@ -43,16 +50,15 @@ public class MyTileProvider implements TileProvider, Closeable {
 	@Override
 	public Tile getTile(int x, int y, int zoom) {
 		Tile result = null;
-		Log.w("MyTag", "x : " + x + " y:" + y + " z:" + zoom);
+		// convert colmun due to te mbtile
 		int column = ((int) (Math.pow(2, zoom) - y) - 1);
-		Log.w("MyTag", "row:" + x + " column : " + column + " zoomlevel:" + zoom);
+		// call request in db
 		Cursor data = dbHelper.getTile(x, column, zoom);
 		if (data != null) {
 			if (data.moveToFirst()) {
+				// get the bitmap
 				int clmnindex = data.getColumnIndex("tile_data");
 				byte[] img = data.getBlob(clmnindex);
-				Log.w("MyTag", "data found");
-				// TODO here miss height and width of img
 				result = new Tile(TILE_WIDTH, TILE_HEIGHT, img);
 			}
 			data.close();
@@ -64,6 +70,10 @@ public class MyTileProvider implements TileProvider, Closeable {
 		return result;
 	}
 	
+	/**
+	 * Get Bounds of map present in db
+	 * @return
+	 */
 	public LatLngBounds getBounds() {
 		LatLngBounds result = null;
 		Cursor data = dbHelper.getBoundsMap();
@@ -81,6 +91,10 @@ public class MyTileProvider implements TileProvider, Closeable {
 		return result;
 	}
 	
+	/**
+	 * Get Min Zoom present in db
+	 * @return
+	 */
 	public Integer getMinZoom() {
 		Integer result = 1;
 		Cursor data = dbHelper.getMinZoom();

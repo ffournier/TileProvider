@@ -12,6 +12,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
+/**
+ * The DataBase Helper 
+ * @author florian
+ *
+ */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	// TODO change it
@@ -25,6 +30,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         this.myContext = context;
     }
 
+    /**
+     * Create database
+     * @param name
+     * @throws IOException
+     */
     public void createDatabase() throws IOException {
         boolean isExist = isDatabaseExist();
 
@@ -39,13 +49,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * CopyDataBase from Asset to the internal storage
+     * @param name
+     * @throws IOException
+     */
     private void copyDataBase() throws IOException {
 
         // Open your local db as the input stream
         InputStream myInput = myContext.getAssets().open(DB_NAME);
 
         // Path to the just created empty db
-        String outFileName = DB_PATH + DB_NAME;
+        String outFileName = myContext.getFilesDir() + DB_PATH + DB_NAME;
 
         // Open the empty db as the output stream
         OutputStream myOutput = new FileOutputStream(outFileName);
@@ -63,6 +78,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         myInput.close();
     }
 
+    /**
+     * Test if the database already exist
+     * @return
+     */
     private boolean isDatabaseExist() {
         SQLiteDatabase control = null;
 
@@ -80,6 +99,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return control != null ? true : false;
     }
 
+    /**
+     * Open DataBase
+     * @throws SQLException
+     */
     public void openDataBase() throws SQLException {
 
         // Open the database
@@ -88,16 +111,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    /**
+     * Get Tile in Database
+     * @param row : the row 
+     * @param column : the colum,
+     * @param zoom : the zoom
+     * @return the byte[]
+     */
     public Cursor getTile(int row, int column, int zoom) {
 
         return myDataBase.query("tiles", new String[] {"tile_data"}, "tile_row = ? AND tile_column = ? AND zoom_level = ?", 
         		new String[]{Integer.toString(column), Integer.toString(row), Integer.toString(zoom)}, null, null, null);
     }
     
+    /**
+     * Get Bounds present in db
+     * @return
+     */
     public Cursor getBoundsMap() {
         return myDataBase.query("metadata", new String[] {"value"}, "name like \"bounds\"", null, null, null, null);
     }
     
+    /**
+     * get Min Zoom present in db
+     * @return
+     */
     public Cursor getMinZoom() {
         return myDataBase.query("metadata", new String[] {"value"}, "name like \"minzoom\"", null, null, null, null);
     }
