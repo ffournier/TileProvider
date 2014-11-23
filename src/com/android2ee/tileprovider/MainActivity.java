@@ -4,9 +4,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -31,12 +34,15 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 	MyTileProvider tileProvider;
 	LocationManager locationManager;
 	Marker myPositionMarker;
+	TextView textView;
+	Handler handler;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		textView = (TextView) findViewById(R.id.textview);
 		map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
 		        .getMap();
 		   
@@ -107,6 +113,31 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 		}
 	}
 	
+	private Runnable myRunnable = new Runnable() {
+		
+		@Override
+		public void run() {
+			textView.setVisibility(View.GONE);
+			handler = null;
+		}
+	};
+	
+	
+	private void displayInfo(String info) {
+		if (textView != null) {
+			textView.setText(info);
+			textView.setVisibility(View.VISIBLE);
+			if (handler == null) {
+				handler = new Handler();
+			} else {
+				handler.removeCallbacks(myRunnable);
+			}
+			handler.postDelayed(myRunnable, 4000);
+		}
+	}
+	
+	
+	
 	/**
 	 * Display the current Location on map
 	 * @param location
@@ -132,19 +163,23 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 		// display on map
 		if (map != null && location != null) {
 			updateMarker(location);
+			displayInfo("New Location");
 		}
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
+		displayInfo("Provider Disabled");
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
+		displayInfo("Provider Enabled");
 	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
+		displayInfo("on Status Changed");
 	}
 	
 	
