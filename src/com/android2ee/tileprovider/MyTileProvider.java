@@ -37,9 +37,9 @@ public class MyTileProvider implements TileProvider, Closeable {
 	 * @param name
 	 */
 	private void openTiles(String name) {
-		dbHelper = new DatabaseHelper(mContext);
+		dbHelper = new DatabaseHelper(mContext, name);
 	    try {
-			dbHelper.createDatabase(name);
+			dbHelper.createDatabase();
 		
 		    dbHelper.openDataBase();
 		    
@@ -96,9 +96,27 @@ public class MyTileProvider implements TileProvider, Closeable {
 	 * Get Min Zoom present in db
 	 * @return
 	 */
-	public Integer getMinZoom() {
-		Integer result = 1;
+	public int getMinZoom() {
+		Integer result = -1;
 		Cursor data = dbHelper.getMinZoom();
+		if (data != null) {
+			if (data.moveToFirst()) {
+				int columnIndex = data.getColumnIndex("value");
+				result = data.getInt(columnIndex);
+				
+			}
+			data.close();
+		}
+		return result;
+	}
+	
+	/**
+	 * Get Max Zoom present in db
+	 * @return
+	 */
+	public int getMaxZoom() {
+		Integer result = -1;
+		Cursor data = dbHelper.getMaxZoom();
 		if (data != null) {
 			if (data.moveToFirst()) {
 				int columnIndex = data.getColumnIndex("value");

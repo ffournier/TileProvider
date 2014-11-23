@@ -9,11 +9,9 @@ import java.io.OutputStream;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteCantOpenDatabaseException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 /**
  * The DataBase Helper 
@@ -23,17 +21,19 @@ import android.util.Log;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	// TODO change it
-    private static String DB_SUBPATH = "/databases/";
-    private static String DB_PATH;
-    private static String DB_NAME = "mydatabase.mbtiles";
+    private static final String DB_SUBPATH = "/databases/";
+    private String dbPath;
+    private String dbName;
+    private static final Integer DB_VERSION = 1;
     private SQLiteDatabase myDataBase;
     private final Context myContext;
 
-    public DatabaseHelper (Context context) {
-        super(context, DB_NAME, null, 1);
+    public DatabaseHelper (Context context, String name) {
+        super(context, name, null, DB_VERSION);
         this.myContext = context;
-        DB_PATH = context.getFilesDir().getAbsolutePath() + DB_SUBPATH;
-        File file = new File(DB_PATH);
+        this.dbName = name;
+        this.dbPath = context.getFilesDir().getAbsolutePath() + DB_SUBPATH;
+        File file = new File(dbPath);
         if (!file.exists()) {
         	file.mkdirs();
         }
@@ -44,14 +44,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param name
      * @throws IOException
      */
-    public void createDatabase(String name) throws IOException {
+    public void createDatabase() throws IOException {
         boolean isExist = isDatabaseExist();
 
         if (!isExist) {
             this.getReadableDatabase();
 
             try {
-                copyDataBase(name);
+                copyDataBase();
             } catch (IOException e) {
             	throw new Error("Error copying database");
             }
@@ -63,13 +63,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param name
      * @throws IOException
      */
-    private void copyDataBase(String name) throws IOException {
+    private void copyDataBase() throws IOException {
 
         // Open your local db as the input stream
-        InputStream myInput = myContext.getAssets().open(name);
+        InputStream myInput = myContext.getAssets().open(dbName);
         
         // Path to the just created empty db
-        String outFileName = DB_PATH + DB_NAME;
+        String outFileName = dbPath + dbName;
 
         // Open the empty db as the output stream
         OutputStream myOutput = new FileOutputStream(outFileName);
@@ -95,7 +95,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase control = null;
 
         try {
-            String myPath = DB_PATH + DB_NAME;
+            String myPath = dbPath + dbName;
             control = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
 
         } catch (SQLiteException e) {
@@ -115,7 +115,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void openDataBase() throws SQLException {
 
         // Open the database
-        String myPath = DB_PATH + DB_NAME;
+        String myPath = dbPath + dbName;
         myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READWRITE);
 
     }
@@ -147,6 +147,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public Cursor getMinZoom() {
         return myDataBase.query("metadata", new String[] {"value"}, "name like \"minzoom\"", null, null, null, null);
+    }
+    
+    /**
+     * get Max Zoom present in db
+     * @return
+     */
+    public Cursor getMaxZoom() {
+        return myDataBase.query("metadata", new String[] {"value"}, "name like \"maxzoom\"", null, null, null, null);
     }
 
     @Override

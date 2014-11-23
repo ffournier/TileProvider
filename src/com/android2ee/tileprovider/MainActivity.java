@@ -6,16 +6,21 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -27,15 +32,17 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
  * @author florian
  *
  */
-public class MainActivity extends ActionBarActivity implements LocationListener {
+public class MainActivity extends ActionBarActivity implements LocationListener, OnCameraChangeListener {
 
 	// Declaration
-	GoogleMap map;
-	MyTileProvider tileProvider;
-	LocationManager locationManager;
-	Marker myPositionMarker;
-	TextView textView;
-	Handler handler;
+	private GoogleMap map;
+	private MyTileProvider tileProvider;
+	private LocationManager locationManager;
+	private Marker myPositionMarker;
+	private TextView textView;
+	private Handler handler;
+	private int minZoom = -1;
+	private int maxZoom = -1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,19 +58,40 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 			// set the type to TYPE_NONE
 	    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
 	    	// create the tileProvider
-	    	tileProvider = new MyTileProvider(this, "tiles-ign.mbtiles");
+	    	tileProvider = new MyTileProvider(this, "test.mbtiles");
 	    	// Add the Provider in Map
 	    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
 	    	// center Map
 	    	LatLngBounds bounds = tileProvider.getBounds();
 	    	//double zoom = tileProvider.getMinZoom();
 	    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
+	    	minZoom = tileProvider.getMinZoom();
+	    	maxZoom = tileProvider.getMaxZoom();
+	    	map.setOnCameraChangeListener(this);
 	    	map.moveCamera(upd);
 	    	// TODO can display location like this
 	    	//map.setMyLocationEnabled(true);
+	    	
+	    	
 	    }
 	    
 	    locationManager = (LocationManager)  getSystemService(LOCATION_SERVICE);
+	}
+	
+	@Override
+	public void onCameraChange(CameraPosition position) {
+		Log.w("Tag", "onCameraChange");
+		Log.w("Tag", "position.zoom " + position.zoom);
+		Log.w("Tag", "maxZoom " + maxZoom);
+		Log.w("Tag", "minZoom " + minZoom);
+		if (minZoom != -1) {
+			if (position.zoom < minZoom)
+		        map.animateCamera(CameraUpdateFactory.zoomTo(minZoom));
+		}
+		if (maxZoom != -1) {
+			if (position.zoom > maxZoom)
+		        map.animateCamera(CameraUpdateFactory.zoomTo(maxZoom));
+		}
 	}
 	
 	@Override
@@ -106,7 +134,6 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 		if (tileProvider != null) {
 			tileProvider.close();
@@ -117,7 +144,9 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 		
 		@Override
 		public void run() {
-			textView.setVisibility(View.GONE);
+			Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.out);
+			textView.setAnimation(animation);
+			textView.setVisibility(View.INVISIBLE);
 			handler = null;
 		}
 	};
@@ -126,7 +155,10 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 	private void displayInfo(String info) {
 		if (textView != null) {
 			textView.setText(info);
+			Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.in);
+			textView.setAnimation(animation);
 			textView.setVisibility(View.VISIBLE);
+			
 			if (handler == null) {
 				handler = new Handler();
 			} else {
@@ -181,6 +213,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener 
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		displayInfo("on Status Changed");
 	}
-	
-	
+
+
+
 }

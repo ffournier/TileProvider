@@ -12,8 +12,8 @@
 
  	<TextView android:id="@+id/textview" 
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
         android:textColor="@android:color/darker_gray"
-        android:background="@android:color/transparent"
-        android:visibility="gone"/>
+        android:background="#50E00000"
+        android:visibility="invisible"/>
 </FrameLayout>
