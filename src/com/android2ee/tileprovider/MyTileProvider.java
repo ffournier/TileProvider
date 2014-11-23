@@ -1,5 +1,6 @@
 package com.android2ee.tileprovider;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import android.content.Context;
@@ -11,7 +12,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileProvider;
 
-public class MyTileProvider implements TileProvider {
+public class MyTileProvider implements TileProvider, Closeable {
 	
 	public static final int TILE_WIDTH = 256;
     public static final int TILE_HEIGHT = 256;
@@ -94,6 +95,7 @@ public class MyTileProvider implements TileProvider {
 		return result;
 	}
 	
+	@Override
 	public void close() {
 		if (dbHelper != null) {
 			dbHelper.close();
@@ -105,6 +107,7 @@ public class MyTileProvider implements TileProvider {
 	protected void finalize() throws Throwable {
 		// TODO Auto-generated method stub
 		super.finalize();
+		// try it.
 		close();
 	}
 	
