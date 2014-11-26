@@ -94,7 +94,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	          dialog.setCancelable(false);
 	          dialog.show();
 	      }
-	      return resultCode != ConnectionResult.SUCCESS;
+	      return resultCode == ConnectionResult.SUCCESS;
 	}
 	
 	@Override
