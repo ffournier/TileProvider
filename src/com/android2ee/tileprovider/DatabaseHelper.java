@@ -20,11 +20,12 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-	// TODO change it
-    private static final String DB_SUBPATH = "/databases/";
-    private String dbPath;
+	// Declaration
+	private static final String DB_SUBPATH = "/databases/";
+	private static final Integer DB_VERSION = 1;
+    
+	private String dbPath;
     private String dbName;
-    private static final Integer DB_VERSION = 1;
     private SQLiteDatabase myDataBase;
     private final Context myContext;
 

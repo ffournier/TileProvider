@@ -51,7 +51,7 @@ public class MyTileProvider implements TileProvider, Closeable {
 	@Override
 	public Tile getTile(int x, int y, int zoom) {
 		Tile result = null;
-		// convert colmun due to te mbtile
+		// convert column due to te mbtile
 		int column = ((int) (Math.pow(2, zoom) - y) - 1);
 		// call request in db
 		Cursor data = dbHelper.getTile(x, column, zoom);
@@ -138,7 +138,6 @@ public class MyTileProvider implements TileProvider, Closeable {
 
 	@Override
 	protected void finalize() throws Throwable {
-		// TODO Auto-generated method stub
 		super.finalize();
 		// try it.
 		close();

@@ -1,12 +1,14 @@
 package com.android2ee.tileprovider;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +16,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,6 +38,7 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
  */
 public class MainActivity extends ActionBarActivity implements LocationListener, OnCameraChangeListener {
 
+	private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 10;
 	// Declaration
 	private GoogleMap map;
 	private MyTileProvider tileProvider;
@@ -53,44 +58,69 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 		map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
 		        .getMap();
 		   
-		// Init Map
-		if (map != null){
-			// set the type to TYPE_NONE
-	    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
-	    	// create the tileProvider
-	    	tileProvider = new MyTileProvider(this, "test.mbtiles");
-	    	// Add the Provider in Map
-	    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
-	    	// center Map
-	    	LatLngBounds bounds = tileProvider.getBounds();
-	    	//double zoom = tileProvider.getMinZoom();
-	    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
-	    	minZoom = tileProvider.getMinZoom();
-	    	maxZoom = tileProvider.getMaxZoom();
-	    	map.setOnCameraChangeListener(this);
-	    	map.moveCamera(upd);
-	    	// TODO can display location like this
-	    	//map.setMyLocationEnabled(true);
-	    	
-	    	
-	    }
-	    
-	    locationManager = (LocationManager)  getSystemService(LOCATION_SERVICE);
+		if (checkGooglePlayServicesAvailability()) {
+			// Init Map
+			if (map != null){
+				// set the type to TYPE_NONE
+		    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
+		    	// create the tileProvider
+		    	tileProvider = new MyTileProvider(this, "test.mbtiles");
+		    	// Add the Provider in Map
+		    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+		    	// center Map
+		    	LatLngBounds bounds = tileProvider.getBounds();
+		    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
+		    	minZoom = tileProvider.getMinZoom();
+		    	maxZoom = tileProvider.getMaxZoom();
+		    	map.setOnCameraChangeListener(this);
+		    	map.moveCamera(upd);
+		    	// TODO can display location like this
+		    	//map.setMyLocationEnabled(true);
+		    	locationManager = (LocationManager)  getSystemService(LOCATION_SERVICE);
+		    }
+		}
+	}
+	
+	/**
+	 * Check if the device has the google play service available
+	 * @return
+	 */
+	public boolean checkGooglePlayServicesAvailability()
+	{
+	      int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+	      if(resultCode != ConnectionResult.SUCCESS)
+	      {
+	          Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST);
+	          dialog.setCancelable(false);
+	          dialog.show();
+	      }
+	      return resultCode != ConnectionResult.SUCCESS;
 	}
 	
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	  switch (requestCode) {
+	    case PLAY_SERVICES_RESOLUTION_REQUEST:
+	      if (resultCode == RESULT_CANCELED) {
+	    	  // we quit
+	        finish();
+	      }
+	      return;
+	  }
+	  super.onActivityResult(requestCode, resultCode, data);
+	}  
+	
+	@Override
 	public void onCameraChange(CameraPosition position) {
-		Log.w("Tag", "onCameraChange");
-		Log.w("Tag", "position.zoom " + position.zoom);
-		Log.w("Tag", "maxZoom " + maxZoom);
-		Log.w("Tag", "minZoom " + minZoom);
-		if (minZoom != -1) {
-			if (position.zoom < minZoom)
-		        map.animateCamera(CameraUpdateFactory.zoomTo(minZoom));
-		}
-		if (maxZoom != -1) {
-			if (position.zoom > maxZoom)
-		        map.animateCamera(CameraUpdateFactory.zoomTo(maxZoom));
+		if (map != null) {
+			if (minZoom != -1) {
+				if (position.zoom < minZoom)
+			        map.animateCamera(CameraUpdateFactory.zoomTo(minZoom));
+			}
+			if (maxZoom != -1) {
+				if (position.zoom > maxZoom)
+			        map.animateCamera(CameraUpdateFactory.zoomTo(maxZoom));
+			}
 		}
 	}
 	
@@ -108,6 +138,11 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
+			DialogFragment dialog = new MyDialogFragment();
+			Bundle args = new Bundle();
+			args.putString(MyDialogFragment.KEY_TEXT, GooglePlayServicesUtil.getOpenSourceSoftwareLicenseInfo(this));
+			dialog.setArguments(args);
+			dialog.show(getSupportFragmentManager(), MyDialogFragment.TAG);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -119,17 +154,21 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	protected void onResume() {
 		super.onResume();
 		// maybe change the provider
-		Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (location != null) {
-			updateMarker(location);
+		if (locationManager != null) {
+			Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			if (location != null) {
+				updateMarker(location);
+			}
+			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);
 		}
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, this);
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
-		locationManager.removeUpdates(this);
+		if (locationManager != null) {
+			locationManager.removeUpdates(this);
+		}
 	}
 
 	@Override
