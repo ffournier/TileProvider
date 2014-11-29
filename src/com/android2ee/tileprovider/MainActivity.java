@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -39,6 +40,9 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 public class MainActivity extends ActionBarActivity implements LocationListener, OnCameraChangeListener {
 
 	private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 10;
+	private static final LatLng TOULOUSE = new LatLng(43.614086, 1.438697);
+	private static final String KEY_TYPE_NORMAL = "com.android2ee.tileprovider.type_normal";
+	
 	// Declaration
 	private GoogleMap map;
 	private MyTileProvider tileProvider;
@@ -48,6 +52,10 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	private Handler handler;
 	private int minZoom = -1;
 	private int maxZoom = -1;
+	private boolean typeNormal = false;
+	
+	MenuItem itemCustom;
+	MenuItem itemNormal;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,29 +63,50 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 		setContentView(R.layout.activity_main);
 		
 		textView = (TextView) findViewById(R.id.textview);
+		
 		map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
 		        .getMap();
 		   
 		if (checkGooglePlayServicesAvailability()) {
 			// Init Map
 			if (map != null){
-				// set the type to TYPE_NONE
-		    	map.setMapType(GoogleMap.MAP_TYPE_NONE);
-		    	// create the tileProvider
-		    	tileProvider = new MyTileProvider(this, "test.mbtiles");
-		    	// Add the Provider in Map
-		    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
-		    	// center Map
-		    	LatLngBounds bounds = tileProvider.getBounds();
-		    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
-		    	minZoom = tileProvider.getMinZoom();
-		    	maxZoom = tileProvider.getMaxZoom();
-		    	map.setOnCameraChangeListener(this);
-		    	map.moveCamera(upd);
+				updateMap();
 		    	// TODO can display location like this
 		    	//map.setMyLocationEnabled(true);
 		    	locationManager = (LocationManager)  getSystemService(LOCATION_SERVICE);
 		    }
+		}
+	}
+	
+	/**
+	 * update Map in depends of TYPE_NORMAL or TYPE_CUSTOM choosen by the user
+	 */
+	private void updateMap(){
+		map.clear();
+		if (typeNormal) {
+			// set the type to TYPE_NONE
+	    	map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+	    	// Add the Provider in Map
+	    	map.addGroundOverlay(new GroundOverlayOptions()
+	                .image(BitmapDescriptorFactory.fromResource(R.drawable.background)).anchor(0, 1)
+	                .position(TOULOUSE, 8600f, 6500f));
+	    	// center Map
+	    	map.setOnCameraChangeListener(null);
+	    	map.moveCamera(CameraUpdateFactory.newLatLngZoom(TOULOUSE, 11));
+	    } else {
+			// set the type to TYPE_NONE
+			map.setMapType(GoogleMap.MAP_TYPE_NONE);
+	    	// create the tileProvider
+	    	tileProvider = new MyTileProvider(this, "test.mbtiles");
+	    	// Add the Provider in Map
+	    	map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+	    	// center Map
+	    	LatLngBounds bounds = tileProvider.getBounds();
+	    	CameraUpdate upd = CameraUpdateFactory.newLatLngBounds(bounds,MyTileProvider.TILE_WIDTH , MyTileProvider.TILE_HEIGHT, 0);
+	    	minZoom = tileProvider.getMinZoom();
+	    	maxZoom = tileProvider.getMaxZoom();
+	    	map.setOnCameraChangeListener(this);
+	    	map.moveCamera(upd);
 		}
 	}
 	
@@ -126,30 +155,54 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+		
+		itemCustom = menu.findItem(R.id.action_custom);
+		itemNormal = menu.findItem(R.id.action_normal);
+		updateMenu();
 		return true;
 	}
-
+	
+	/**
+	 * Update Menu Checked
+	 */
+	private void updateMenu() {
+		if (itemCustom != null && itemNormal != null) {
+			itemCustom.setChecked(typeNormal ? false : true);
+			itemNormal.setChecked(typeNormal ? true : false);
+			// force to refresh menu
+			invalidateOptionsMenu();
+		}
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		switch(id) {
+		case R.id.action_info :
 			DialogFragment dialog = new MyDialogFragment();
 			Bundle args = new Bundle();
 			args.putString(MyDialogFragment.KEY_TEXT, GooglePlayServicesUtil.getOpenSourceSoftwareLicenseInfo(this));
 			dialog.setArguments(args);
 			dialog.show(getSupportFragmentManager(), MyDialogFragment.TAG);
 			return true;
+		case R.id.action_custom :
+			typeNormal = false;
+			updateMenu();
+			updateMap();
+			return true;
+		case R.id.action_normal :
+			typeNormal = true;
+			updateMenu();
+			updateMap();
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
 	
-	
-
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -169,6 +222,25 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 		if (locationManager != null) {
 			locationManager.removeUpdates(this);
 		}
+	}
+	
+	
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putBoolean(KEY_TYPE_NORMAL, typeNormal);
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		boolean type = savedInstanceState.getBoolean(KEY_TYPE_NORMAL);
+		if (type != typeNormal) {
+			typeNormal = type;
+		}
+		updateMenu();
+		updateMap();
 	}
 
 	@Override
