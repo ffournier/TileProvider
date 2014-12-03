@@ -46,6 +46,7 @@ public class MyTileProvider implements TileProvider, Closeable {
 		    
 	    } catch (IOException e) {
 			e.printStackTrace();
+			close();
 		}
 	}
 
@@ -133,6 +134,7 @@ public class MyTileProvider implements TileProvider, Closeable {
 	public void close() {
 		if (dbHelper != null) {
 			dbHelper.close();
+			dbHelper = null;
 		}
 		
 	}

@@ -17,11 +17,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import com.android2ee.tileprovider.R;
-import com.android2ee.tileprovider.R.anim;
-import com.android2ee.tileprovider.R.drawable;
-import com.android2ee.tileprovider.R.id;
-import com.android2ee.tileprovider.R.layout;
-import com.android2ee.tileprovider.R.menu;
 import com.android2ee.tileprovider.activity.fragment.MyDialogFragment;
 import com.android2ee.tileprovider.provider.MyTileProvider;
 import com.google.android.gms.common.ConnectionResult;
@@ -139,7 +134,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	  switch (requestCode) {
 	    case PLAY_SERVICES_RESOLUTION_REQUEST:
 	      if (resultCode == RESULT_CANCELED) {
-	    	  // we quit
+	    	  // we force quit
 	        finish();
 	      }
 	      return;
@@ -149,6 +144,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	
 	@Override
 	public void onCameraChange(CameraPosition position) {
+		// fix camera in depends of maxzoom and min zoom gets in db
 		if (map != null) {
 			if (minZoom != -1) {
 				if (position.zoom < minZoom)
@@ -227,6 +223,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	@Override
 	protected void onPause() {
 		super.onPause();
+		// remove Update of listener Location
 		if (locationManager != null) {
 			locationManager.removeUpdates(this);
 		}
@@ -247,6 +244,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 		if (type != typeNormal) {
 			typeNormal = type;
 		}
+		// refresh map and menu
 		updateMenu();
 		updateMap();
 	}
@@ -254,11 +252,16 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		
+		// close the tileprovider
 		if (tileProvider != null) {
 			tileProvider.close();
 		}
 	}
 	
+	/**
+	 * Run Animation on the banner out
+	 */
 	private Runnable myRunnable = new Runnable() {
 		
 		@Override
@@ -271,6 +274,10 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	};
 	
 	
+	/**
+	 * Display information in the banner and run animation on banner in
+	 * @param info
+	 */
 	private void displayInfo(String info) {
 		if (textView != null) {
 			textView.setText(info);
@@ -283,6 +290,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 			} else {
 				handler.removeCallbacks(myRunnable);
 			}
+			// thus 4s remove banner
 			handler.postDelayed(myRunnable, 4000);
 		}
 	}
