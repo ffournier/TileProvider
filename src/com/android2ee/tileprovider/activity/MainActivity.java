@@ -1,4 +1,4 @@
-package com.android2ee.tileprovider;
+package com.android2ee.tileprovider.activity;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -16,6 +16,14 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import com.android2ee.tileprovider.R;
+import com.android2ee.tileprovider.R.anim;
+import com.android2ee.tileprovider.R.drawable;
+import com.android2ee.tileprovider.R.id;
+import com.android2ee.tileprovider.R.layout;
+import com.android2ee.tileprovider.R.menu;
+import com.android2ee.tileprovider.activity.fragment.MyDialogFragment;
+import com.android2ee.tileprovider.provider.MyTileProvider;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;

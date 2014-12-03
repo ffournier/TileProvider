@@ -1,4 +1,4 @@
-package com.android2ee.tileprovider;
+package com.android2ee.tileprovider.db;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -1,4 +1,7 @@
-package com.android2ee.tileprovider;
+package com.android2ee.tileprovider.activity.fragment;
+
+import com.android2ee.tileprovider.R;
+import com.android2ee.tileprovider.R.string;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

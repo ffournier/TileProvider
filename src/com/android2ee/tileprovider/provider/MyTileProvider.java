@@ -1,4 +1,4 @@
-package com.android2ee.tileprovider;
+package com.android2ee.tileprovider.provider;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import android.content.Context;
 import android.database.Cursor;
 
+import com.android2ee.tileprovider.db.DatabaseHelper;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Tile;
