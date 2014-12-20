@@ -175,7 +175,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 			itemCustom.setChecked(typeNormal ? false : true);
 			itemNormal.setChecked(typeNormal ? true : false);
 			// force to refresh menu
-			invalidateOptionsMenu();
+			supportInvalidateOptionsMenu();
 		}
 	}
 	
