@@ -9,6 +9,11 @@ import android.support.v4.app.DialogFragment;
 
 import com.android2ee.tileprovider.R;
 
+/**
+ * DialogFragment to display legal information of Google
+ * @author florian
+ *
+ */
 public class MyDialogFragment extends DialogFragment {
 	
 	public static final String TAG = "com.android2ee.tileprovider.mydialogfragment";
