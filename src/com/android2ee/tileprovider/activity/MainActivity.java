@@ -87,7 +87,7 @@ public class MainActivity extends ActionBarActivity implements LocationListener,
 	private void updateMap(){
 		map.clear();
 		if (typeNormal) {
-			// set the type to TYPE_NONE
+			// set the type to MAP_TYPE_NORMAL
 	    	map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 	    	// Add the Provider in Map
 	    	map.addGroundOverlay(new GroundOverlayOptions()
